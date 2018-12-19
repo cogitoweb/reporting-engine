@@ -35,23 +35,7 @@ def _instanciate(self, model_data):
     # END of patch
     return CustomModel
 
-def _drop_table(self):
-    for model in self:
-        table = self.env[model.model]._table
-        self._cr.execute('select relkind from pg_class where relname=%s', (table,))
-        result = self._cr.fetchone()
-
-        _logger.info("drop VIEWWWWWWWWWWWW %s" % table)
-
-        if result and result[0] == 'v':
-            self._cr.execute('DROP view %s' % table)
-        elif result and result[0] == 'r':
-            self._cr.execute('DROP TABLE %s CASCADE' % table)
-    return True
-
-
 IrModel._instanciate = _instanciate
-IrModel._drop_table = _drop_table
 
 
 class BiSQLView(models.Model):
