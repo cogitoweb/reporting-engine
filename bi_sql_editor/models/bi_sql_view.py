@@ -70,6 +70,14 @@ class BiSQLView(models.Model):
             'sql_valid': [('readonly', False)],
         })
 
+    disable_linking = fields.Boolean(
+        string='Pivot View disable_linking', default=False, readonly=True,
+        states={'draft': [('readonly', False)]})
+
+    display_quantity = fields.Boolean(
+        string='Pivot View display_quantity', default=True, readonly=True,
+        states={'draft': [('readonly', False)]})
+
     materialized_text = fields.Char(
         compute='_compute_materialized_text', store=True)
 
@@ -210,8 +218,13 @@ class BiSQLView(models.Model):
 
     @api.multi
     def unlink(self):
-        if any(view.state not in ('draft', 'sql_valid') for view in self):
+        non_draft_views = self.search([
+            ('id', 'in', self.ids),
+            ('state', 'not in', ('draft', 'sql_valid'))])
+        if non_draft_views:
             raise UserError(_("You can only unlink draft views"))
+		## cgt patch 2017-09-30
+		## return self.unlink()
         return super(BiSQLView, self).unlink()
 
     @api.multi
@@ -231,7 +244,7 @@ class BiSQLView(models.Model):
             if sql_view.state != 'sql_valid':
                 raise UserError(_(
                     "You can only process this action on SQL Valid items"))
-            # Create ORM and acess
+            # Create ORM and access
             sql_view._create_model_and_fields()
             sql_view._create_model_access()
 
@@ -247,15 +260,6 @@ class BiSQLView(models.Model):
     @api.multi
     def button_set_draft(self):
         for sql_view in self:
-            sql_view.menu_id.unlink()
-            sql_view.action_id.unlink()
-            sql_view.tree_view_id.unlink()
-            sql_view.graph_view_id.unlink()
-            sql_view.pivot_view_id.unlink()
-            sql_view.search_view_id.unlink()
-            if sql_view.cron_id:
-                sql_view.cron_id.unlink()
-
             if sql_view.state in ('model_valid', 'ui_valid'):
                 # Drop SQL View (and indexes by cascade)
                 if sql_view.is_materialized:
@@ -264,10 +268,18 @@ class BiSQLView(models.Model):
                 # Drop ORM
                 sql_view._drop_model_and_fields()
 
+            sql_view.tree_view_id.unlink()
+            sql_view.graph_view_id.unlink()
+            sql_view.pivot_view_id.unlink()
+            sql_view.search_view_id.unlink()
+            sql_view.action_id.unlink()
+            sql_view.menu_id.unlink()
+            if sql_view.cron_id:
+                sql_view.cron_id.unlink()
             sql_view.write({'state': 'draft', 'has_group_changed': False})
 
     @api.multi
-    def button_create_ui(self):
+    def button_create_ui(self, menu_xml_id=False):
         self.tree_view_id = self.env['ir.ui.view'].create(
             self._prepare_tree_view()).id
         self.graph_view_id = self.env['ir.ui.view'].create(
@@ -279,7 +291,7 @@ class BiSQLView(models.Model):
         self.action_id = self.env['ir.actions.act_window'].create(
             self._prepare_action()).id
         self.menu_id = self.env['ir.ui.menu'].create(
-            self._prepare_menu()).id
+            self._prepare_menu(menu_xml_id)).id
         self.write({'state': 'ui_valid'})
 
     @api.multi
@@ -349,7 +361,7 @@ class BiSQLView(models.Model):
     def _prepare_rule(self):
         self.ensure_one()
         return {
-            'name': _('Access %s') % (self.name),
+            'name': _('Access %s') % self.name,
             'model_id': self.model_id.id,
             'domain_force': self.domain_force,
             'global': True,
@@ -388,14 +400,20 @@ class BiSQLView(models.Model):
     @api.multi
     def _prepare_pivot_view(self):
         self.ensure_one()
+
+        arch = """<?xml version="1.0"?>
+        <pivot string="Analysis" %s %s stacked="True">
+        {}
+        </pivot>""" % (
+            'disable_linking="True"' if self.disable_linking else '',
+            'display_quantity="True"' if self.display_quantity else ''
+            )
+
         return {
             'name': self.name,
             'type': 'pivot',
             'model': self.model_id.model,
-            'arch':
-                """<?xml version="1.0"?>"""
-                """<pivot string="Analysis" stacked="True">{}"""
-                """</pivot>""".format("".join(
+            'arch': arch.format("".join(
                     [x._prepare_pivot_field()
                         for x in self.bi_sql_view_field_ids]))
         }
@@ -450,11 +468,17 @@ class BiSQLView(models.Model):
             datetime.utcnow().strftime(_("%m/%d/%Y %H:%M:%S UTC")))
 
     @api.multi
-    def _prepare_menu(self):
+    def _prepare_menu(self, menu_xml_id=False):
         self.ensure_one()
+
+        if menu_xml_id:
+            parent_menu = self.env.ref(menu_xml_id)
+        else:
+            parent_menu = self.env.ref('bi_sql_editor.menu_bi_sql_editor')
+        
         return {
             'name': self.name,
-            'parent_id': self.env.ref('bi_sql_editor.menu_bi_sql_editor').id,
+            'parent_id': parent_menu.id,
             'action': 'ir.actions.act_window,%s' % (self.action_id.id),
             'sequence': self.sequence,
         }
@@ -470,6 +494,9 @@ class BiSQLView(models.Model):
             self._log_execute(
                 "DROP %s VIEW IF EXISTS %s" % (
                     sql_view.materialized_text, sql_view.view_name))
+
+            self._log_execute(
+                "DROP SEQUENCE IF EXISTS seq_%s" % (sql_view.view_name))
             sql_view.size = False
 
     @api.multi
@@ -499,13 +526,47 @@ class BiSQLView(models.Model):
     def _create_model_and_fields(self):
         for sql_view in self:
             # Create model
-            sql_view.model_id = self.env['ir.model'].create(
-                self._prepare_model()).id
+            # or update
+            data = self._prepare_model()
+            model = self.env['ir.model'].search(
+                [
+                    ('model', '=', data['model'])
+                ]
+            )
+
+            if model:
+                fields = data['field_id']
+                update_fields = []
+                
+                # do not try to save (or update)
+                # already python defined fields
+                # because of an Odoo lock
+                # raise UserError(_('Properties of base fields cannot be altered in this manner! '
+                #                      'Please modify them through Python code, '
+                #                      'preferably through a custom addon!')) 
+                for fu in fields:
+                    skip = False
+                    for f in model.field_id:
+                        if f.name == fu[2]['name']:
+                            skip = True
+                            break
+                    if not skip:
+                        update_fields.append(
+                            fu
+                        )
+
+                model.write({'field_id': update_fields})
+                sql_view.model_id = model.id
+            else:
+                sql_view.model_id = self.env['ir.model'].create(
+                    data
+                ).id
+
             sql_view.rule_id = self.env['ir.rule'].create(
                 self._prepare_rule()).id
             # Drop table, created by the ORM
-            req = "DROP TABLE %s" % (sql_view.view_name)
-            self._log_execute(req)
+            req = "DROP TABLE if exists %s" % (sql_view.view_name)
+            self.env.cr.execute(req)
 
     @api.multi
     def _create_model_access(self):
@@ -525,7 +586,9 @@ class BiSQLView(models.Model):
             if sql_view.rule_id:
                 sql_view.rule_id.unlink()
             if sql_view.model_id:
-                sql_view.model_id.with_context(_force_unlink=True).unlink()
+                ## cgt patch 2017-10-16
+                ## sql_view.model_id.unlink()
+				sql_view.model_id.with_context(_force_unlink=True).unlink()
 
     @api.multi
     def _hook_executed_request(self):
@@ -545,14 +608,23 @@ class BiSQLView(models.Model):
     @api.multi
     def _prepare_request_check_execution(self):
         self.ensure_one()
-        return "CREATE VIEW %s AS (%s);" % (self.view_name, self.query)
+        return """
+            CREATE SEQUENCE if not exists public.seq_%s
+            INCREMENT BY 1
+            MINVALUE 1
+            MAXVALUE 9223372036854775807
+            START 1
+            CYCLE;
+
+            CREATE VIEW %s AS (%s);
+            """ % (self.view_name, self.view_name, self.query)
 
     @api.multi
     def _prepare_request_for_execution(self):
         self.ensure_one()
         query = """
             SELECT
-                CAST(row_number() OVER () as integer) AS id,
+                nextval('seq_%s') AS id,
                 CAST(Null as timestamp without time zone) as create_date,
                 CAST(Null as integer) as create_uid,
                 CAST(Null as timestamp without time zone) as write_date,
@@ -560,9 +632,21 @@ class BiSQLView(models.Model):
                 my_query.*
             FROM
                 (%s) as my_query
-        """ % (self.query)
-        return "CREATE %s VIEW %s AS (%s);" % (
-            self.materialized_text, self.view_name, query)
+        """ % (self.view_name, self.query)
+        return """
+            CREATE SEQUENCE if not exists public.seq_%s
+            INCREMENT BY 1
+            MINVALUE 1
+            MAXVALUE 9223372036854775807
+            START 1
+            CYCLE;
+        
+            CREATE %s VIEW %s AS (%s);""" % (
+                self.view_name,
+                self.materialized_text,
+                self.view_name,
+                query
+            )
 
     @api.multi
     def _check_execution(self):

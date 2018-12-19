@@ -55,6 +55,7 @@ class BiSQLViewField(models.Model):
         string='SQL Type', required=True, readonly=True,
         help="SQL Type in the database")
 
+    interval = fields.Selection([('day','day'),('week','week'),('month','month'),('quarter','quarter'),('year','year')], default='day')
     sequence = fields.Integer(string='sequence', required=True, readonly=True)
 
     bi_sql_view_id = fields.Many2one(
@@ -201,8 +202,12 @@ class BiSQLViewField(models.Model):
         self.ensure_one()
         res = ''
         if self.graph_type and self.field_description:
-            res = """<field name="{}" type="{}" />""".format(
-                self.name, self.graph_type)
+            if self.ttype in ('date', 'datetime'):
+                res = """<field name="{}" type="{}" interval="{}" />""".format(
+                    self.name, self.graph_type, self.interval)
+            else:
+                res = """<field name="{}" type="{}" />""".format(
+                    self.name, self.graph_type)
         return res
 
     @api.multi
@@ -210,8 +215,12 @@ class BiSQLViewField(models.Model):
         self.ensure_one()
         res = ''
         if self.graph_type and self.field_description:
-            res = """<field name="{}" type="{}" />""".format(
-                self.name, self.graph_type)
+            if self.ttype in ('date', 'datetime'):
+                res = """<field name="{}" type="{}" interval="{}" />""".format(
+                    self.name, self.graph_type, self.interval)
+            else:
+                res = """<field name="{}" type="{}" />""".format(
+                    self.name, self.graph_type)
         return res
 
     @api.multi

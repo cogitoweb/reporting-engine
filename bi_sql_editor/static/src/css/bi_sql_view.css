@@ -1,0 +1,5 @@
+
+li[data-field="create_uid"], li[data-field="create_date"], 
+li[data-field="write_uid"], li[data-field="write_date"] {
+    display: none !important;
+}

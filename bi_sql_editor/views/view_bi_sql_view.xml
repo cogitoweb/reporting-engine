@@ -7,6 +7,12 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 <odoo>
 
+    <template id="assets_backend" name="bi_sql_view assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/css" href="/bi_sql_editor/static/src/css/bi_sql_view.css" />
+        </xpath>
+    </template>
+
     <record id="view_bi_sql_view_tree" model="ir.ui.view">
         <field name="model">bi.sql.view</field>
         <field name="arch" type="xml">
@@ -80,6 +86,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                                     <field name="field_description"/>
                                     <field name="ttype" attrs="{
                                         'required': [('field_description', '!=', False)]}"/>
+                                    <field name="interval" attrs="{'invisible': [('ttype', 'not in', ['date','datetime'])]}"/>
                                     <field name="many2one_model_id" attrs="{
                                         'invisible': [('ttype', '!=', 'many2one')],
                                         'required': [
