@@ -20,6 +20,7 @@ class BaseModel(models.AbstractModel):
     def _auto_init(self):
         if self._name.startswith(BiSQLView._model_prefix):
             self._auto = False
+            self._abstract = True
         return super(BaseModel, self)._auto_init()
 
     @api.model_cr_context
