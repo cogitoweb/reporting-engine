@@ -263,7 +263,7 @@ class BiSQLView(models.Model):
             if sql_view.state in ('model_valid', 'ui_valid'):
                 # Drop SQL View (and indexes by cascade)
                 if sql_view.is_materialized:
-                    sql_view._drop_view()
+                    sql_view.__view()
 
                 # Drop ORM
                 sql_view._drop_model_and_fields()
@@ -586,8 +586,6 @@ class BiSQLView(models.Model):
             if sql_view.rule_id:
                 sql_view.rule_id.unlink()
             if sql_view.model_id:
-                ## cgt patch 2017-10-16
-                ## sql_view.model_id.unlink()
 				sql_view.model_id.with_context(_force_unlink=True).unlink()
 
     @api.multi
