@@ -5,6 +5,8 @@
 OCA alternative reporting engines and reporting utilities for Odoo
 ==================================================================
 
+This fork contains an alternative version on bi_sql_editor
+
 This repository hosts alternative reporting engines to the ones included on Odoo core (RML, QWeb and Webkit). It is complemented with the ones that host the reports theirself:
 
 https://github.com/OCA/account-financial-reporting
