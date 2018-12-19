@@ -729,3 +729,101 @@ class BiSQLView(models.Model):
         self.button_validate_sql_expression()
         res = self._execute_sql_request()
         raise UserError('\n'.join(map(lambda x: str(x), res[:100])))
+
+    @api.multi
+    def nuke(self):
+
+        self.ensure_one()
+
+        _logger.info("start nuke on view %s" % self.id)
+
+        # drop rule
+        if self.model_id and self.model_id.id:
+            self.env['ir.rule'].search(
+                [('model_id', '=', self.model_id.id)]
+            ).unlink()
+
+        # in base al nome della vista (thc..) ed al
+        # fatto che la vista sia materializzata
+        # droppo la vista su database
+        if self.is_materialized:
+            sql_drop = "DROP MATERIALIZED VIEW if exists " + self.view_name + ";"
+        else:
+            sql_drop = "DROP VIEW if exists " + self.view_name + ";"
+        sql_drop_table = "DROP TABLE if exists " + self.view_name + ";"
+
+        # maybe this is a table
+        sql_check = """ SELECT EXISTS
+        (
+            SELECT 1
+            FROM pg_catalog.pg_class c
+            JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public'
+            AND c.relname = '%s'
+            AND c.relkind = 'r'
+        )""" % self.view_name
+        self._cr.execute(sql_check)
+        res = self._cr.fetchall()
+        if res and res[0] and res[0][0]:
+            self._cr.execute(sql_drop_table)
+        else:
+            self._cr.execute(sql_drop)
+
+        # elimino tutti i filtri creati
+        filters = self.env['ir.filters'].search(
+            [('model_id', '=', self.model_name)]
+        )
+        for filter in filters:
+            filter.unlink()
+
+        # scollego tutti i fields associati
+        for field in self.bi_sql_view_field_ids:
+            field.unlink()
+
+        # tolgo la relazione con i gruppi
+        if self.group_ids:
+            self.group_ids = False
+
+        if self.graph_view_id and self.graph_view_id.id:
+            self.graph_view_id.unlink()
+
+        if self.search_view_id and self.search_view_id.id:
+            self.search_view_id.unlink()
+
+        if self.action_id and self.action_id.id:
+            self.action_id.unlink()
+
+        if self.menu_id and self.menu_id.id:
+            self.menu_id.unlink()
+
+        # elimino tutte le restanti viste
+        views = self.env['ir.ui.view'].search(
+            [('model', '=', self.model_name)]
+        )
+        for view in views:
+            view.unlink()
+
+        if self.model_id and self.model_id.id:
+            # se base scollego solo i personalizzati
+            if self.model_id.state == 'base':
+                self.model_id.field_id.with_context(
+                    _force_unlink=True
+                ).filtered(lambda x: x.state != 'base').unlink()
+            # altrimenti via tutto
+            else:
+                self.model_id.with_context(_force_unlink=True).unlink()
+
+        # rimuovo il nome del modello
+        if self.model_name:
+            self.model_name = None
+
+        # imposto lo stato della vista a draft per poter usare il metodo unlink
+        self.write({'state': 'draft'})
+        self.unlink()
+
+        _logger.info("Nuke operation completed successfully!")
+        return {
+            'type': 'ir.actions.act_window.message',
+            'title': _('Message'),
+            'message': _("Nuke operation completed successfully!"),
+        }

@@ -52,6 +52,7 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
                         attrs="{'invisible': ['|', ('state', 'in', ('draft', 'sql_valid')), ('is_materialized', '=', False)]}"
                         help="this will refresh the materialized view"/>
                     <button name="button_open_view" type="object" string="Open View" states="ui_valid" class="oe_highlight" />
+                    <button string="Nuke" name="nuke" class="oe_highlight" type="object" confirm="Are you sure you want to NUKE this view?" />
 
                     <field name="state" widget="statusbar" />
                 </header>
