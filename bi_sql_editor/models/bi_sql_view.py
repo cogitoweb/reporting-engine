@@ -9,7 +9,6 @@ from psycopg2 import ProgrammingError
 
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError
-from odoo.tools import pycompat, sql
 from odoo.addons.base.ir.ir_model import IrModel
 
 _logger = logging.getLogger(__name__)
@@ -22,7 +21,7 @@ def _instanciate(self, model_data):
     # This monkey patch is meant to avoid create/search tables for those
     # materialized views. Doing "super" doesn't work.
     class CustomModel(models.Model):
-        _name = pycompat.to_native(model_data['model'])
+        _name = encode(model_data['model'])
         _description = model_data['name']
         _module = False
         _custom = True
