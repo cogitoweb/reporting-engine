@@ -41,7 +41,7 @@ def _table_exist(self):
     # materialized views. Doing "super" doesn't work.
 
     # START OF patch
-    if self._table.startswith(BiSQLView._model_prefix):
+    if self._table.startswith(BiSQLView._sql_prefix):
         return True
     # END of patch
 
