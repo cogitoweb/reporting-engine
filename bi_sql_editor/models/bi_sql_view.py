@@ -9,7 +9,7 @@ from psycopg2 import ProgrammingError
 
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError
-from odoo.addons.base.ir.ir_model import IrModel, encode, BaseModel
+from odoo.addons.base.ir.ir_model import IrModel, encode
 
 _logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def _table_exist(self):
     return self._cr.rowcount
 
 IrModel._instanciate = _instanciate
-BaseModel._table_exist = _table_exist
+models.BaseModel._table_exist = _table_exist
 
 
 class BiSQLView(models.Model):
