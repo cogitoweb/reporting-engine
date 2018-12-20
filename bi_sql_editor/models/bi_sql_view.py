@@ -9,7 +9,7 @@ from psycopg2 import ProgrammingError
 
 from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError
-from odoo.addons.base.ir.ir_model import IrModel, encode
+from odoo.addons.base.ir.ir_model import IrModel, encode, BaseModel
 
 _logger = logging.getLogger(__name__)
 
@@ -35,7 +35,22 @@ def _instanciate(self, model_data):
     # END of patch
     return CustomModel
 
+@api.model_cr
+def _table_exist(self):
+    # This monkey patch is meant to avoid create/search tables for those
+    # materialized views. Doing "super" doesn't work.
+
+    # START OF patch
+    if self._table.startswith(BiSQLView._model_prefix):
+        return True
+    # END of patch
+
+    query = "SELECT relname FROM pg_class WHERE relkind IN ('r','v','m') AND relname=%s"
+    self._cr.execute(query, (self._table,))
+    return self._cr.rowcount
+
 IrModel._instanciate = _instanciate
+BaseModel._table_exist = _table_exist
 
 
 class BiSQLView(models.Model):
