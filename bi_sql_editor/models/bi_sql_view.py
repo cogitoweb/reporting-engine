@@ -170,6 +170,9 @@ class BiSQLView(models.Model):
     menu_id = fields.Many2one(
         string='Odoo Menu', comodel_name='ir.ui.menu', readonly=True)
 
+    parent_menu_id = fields.Many2one(
+        string='Parent menu', comodel_name='ir.ui.menu')
+
     cron_id = fields.Many2one(
         string='Odoo Cron', comodel_name='ir.cron', readonly=True,
         help="Cron Task that will refresh the materialized view")
@@ -247,8 +250,7 @@ class BiSQLView(models.Model):
             ('state', 'not in', ('draft', 'sql_valid'))])
         if non_draft_views:
             raise UserError(_("You can only unlink draft views"))
-		## cgt patch 2017-09-30
-		## return self.unlink()
+        # return self.unlink()  # removed in cgt patch 2017-09-30
         return super(BiSQLView, self).unlink()
 
     @api.multi
@@ -303,7 +305,7 @@ class BiSQLView(models.Model):
             sql_view.write({'state': 'draft', 'has_group_changed': False})
 
     @api.multi
-    def button_create_ui(self, menu_xml_id=False):
+    def button_create_ui(self):
         self.tree_view_id = self.env['ir.ui.view'].create(
             self._prepare_tree_view()).id
         self.graph_view_id = self.env['ir.ui.view'].create(
@@ -315,7 +317,7 @@ class BiSQLView(models.Model):
         self.action_id = self.env['ir.actions.act_window'].create(
             self._prepare_action()).id
         self.menu_id = self.env['ir.ui.menu'].create(
-            self._prepare_menu(menu_xml_id)).id
+            self._prepare_menu()).id
         self.write({'state': 'ui_valid'})
 
     @api.multi
@@ -492,17 +494,17 @@ class BiSQLView(models.Model):
             datetime.utcnow().strftime(_("%m/%d/%Y %H:%M:%S UTC")))
 
     @api.multi
-    def _prepare_menu(self, menu_xml_id=False):
+    def _prepare_menu(self):
         self.ensure_one()
 
-        if menu_xml_id:
-            parent_menu = self.env.ref(menu_xml_id)
+        if self.parent_menu_id:
+            parent_id = self.parent_menu_id
         else:
-            parent_menu = self.env.ref('bi_sql_editor.menu_bi_sql_editor')
-        
+            parent_id = self.env.ref('bi_sql_editor.menu_bi_sql_editor')
+
         return {
             'name': self.name,
-            'parent_id': parent_menu.id,
+            'parent_id': parent_id.id,
             'action': 'ir.actions.act_window,%s' % (self.action_id.id),
             'sequence': self.sequence,
         }
