@@ -289,7 +289,7 @@ class BiSQLView(models.Model):
             if sql_view.state in ('model_valid', 'ui_valid'):
                 # Drop SQL View (and indexes by cascade)
                 if sql_view.is_materialized:
-                    sql_view.__view()
+                    sql_view._drop_view()
 
                 # Drop ORM
                 sql_view._drop_model_and_fields()
