@@ -36,9 +36,20 @@ coverage.xml
 
 # Translations
 *.mo
+*.pot
+
+# Django stuff:
+*.log
 
 # Pycharm
 .idea
+
+# PyBuilder
+target/
+sftp-config.json
+
+# Visual Studio
+.vscode/
 
 # Mr Developer
 .mr.developer.cfg
@@ -54,3 +65,6 @@ docs/_build/
 # Backup files
 *~
 *.swp
+
+# Custom
+.DS_Store
