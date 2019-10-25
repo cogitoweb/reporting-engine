@@ -23,7 +23,7 @@ class ReportXls(report_sxw):
         report = report_obj.search([('report_name', '=', self.name[7:])])
         if report.ids:
             self.title = report.name
-#            if report.report_type == 'xls':
+            # if report.report_type == 'xls':
             if report.report_type == 'xlsx':
                 return self.create_xlsx_report(ids, data, report)
         return super(ReportXls, self).create(cr, uid, ids, data, context)
@@ -44,15 +44,16 @@ class ReportXls(report_sxw):
 
     def generate_xls_report(self, workbook, data, objs):
         raise NotImplementedError()
-    
-    
-    ## from old
+
+
+    # from old
     xls_types = {
         'bool': xlwt.Row.set_cell_boolean,
         'date': xlwt.Row.set_cell_date,
         'text': xlwt.Row.set_cell_text,
         'number': xlwt.Row.set_cell_number,
     }
+
     xls_types_default = {
         'bool': False,
         'date': None,
@@ -60,7 +61,7 @@ class ReportXls(report_sxw):
         'number': 0,
     }
 
-    # TO DO: move parameters infra to configurable data
+    # [TODO]: move parameters infra to configurable data
 
     # header/footer
     hf_params = {
@@ -94,9 +95,9 @@ class ReportXls(report_sxw):
         'top': 'align: vert top;',
         'bottom': 'align: vert bottom;',
     }
-    # TO DO: move parameters supra to configurable data    
-    
-    
+    # [TODO]: move parameters supra to configurable data
+
+
     def xls_row_template(self, specs, wanted_list):
         """
         Returns a row template.
@@ -145,8 +146,8 @@ class ReportXls(report_sxw):
             if not found:
                 _logger.warn("report_xls.xls_row_template, "
                              "column '%s' not found in specs", w)
-        return r    
-    
+        return r
+
     def xls_write_row(self, ws, row_pos, row_data,
                       row_style=default_style, set_column_size=False):
         r = ws.row(row_pos)
