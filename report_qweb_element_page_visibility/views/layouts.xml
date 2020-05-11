@@ -13,10 +13,27 @@
                             vars[z[0]] = unescape(z[1]);
                         }
                         var x=['frompage', 'topage', 'page', 'webpage', 'section', 'subsection', 'subsubsection'];
+                        var fiscal_page_base = 0;
                         for (var i in x) {
                             var y = document.getElementsByClassName(x[i]);
+                    
+                            /* extract fiscal page number for ITA */
+                            fiscal_page_base = 0
+                            if (document.getElementById('l10n_it_count_fiscal_page_base')!=null){
+                                if (document.getElementById('l10n_it_count_fiscal_page_base').innerHTML){
+                                    fiscal_page_base = parseInt(document.getElementById('l10n_it_count_fiscal_page_base').innerHTML);
+                                }
+                            }
+                    
                             for (var j=0; j&lt;y.length; ++j)
-                                y[j].textContent = vars[x[i]];
+                            {
+                                if (x[i] == 'page') { /* inject page number */
+                                    y[j].textContent = parseInt(eval(vars[x[i]]) + fiscal_page_base);
+                                }
+                                else { /* do as usual */
+                                    y[j].textContent = vars[x[i]];
+                                }
+                            }
                         }
                         var operations = {
                             'not-first-page': function (elt) {
