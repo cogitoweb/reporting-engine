@@ -28,6 +28,6 @@ class TestWkhtmltopdf(odoo.tests.TransactionCase):
                     })]})
             except ValidationError:
                 error = True
-            self.assertEquals(error, False,
+            self.assertEqual(error, False,
                               "There was an error adding wkhtmltopdf "
                               "parameter --disable-smart-shrinking")

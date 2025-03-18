@@ -12,7 +12,7 @@ from datetime import datetime
 from contextlib import closing
 from openerp import _, api, models
 from openerp.exceptions import UserError
-from StringIO import StringIO
+from io import StringIO
 
 logger = logging.getLogger(__name__)
 

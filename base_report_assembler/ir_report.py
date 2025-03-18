@@ -21,7 +21,7 @@
 from openerp.osv import orm
 from openerp import netsvc
 from openerp.report.report_sxw import rml_parse
-from report_assembler import PDFReportAssembler
+from .report_assembler import PDFReportAssembler
 
 
 def register_report(name, model, parser=rml_parse):
@@ -87,7 +87,7 @@ class ReportAssembleXML(orm.Model):
 
     def write(self, cr, uid, ids, vals, context=None):
         """ Edit report and manage its registration """
-        if isinstance(ids, (int, long)):
+        if isinstance(ids, int):
             ids = [ids]
         for rep in self.browse(cr, uid, ids, context=context):
             if rep.report_type != 'assemblage':

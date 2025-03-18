@@ -4,7 +4,7 @@
 from base64 import b64decode
 from logging import getLogger
 from PIL import Image
-from StringIO import StringIO
+from io import StringIO
 
 from pyPdf import PdfFileWriter, PdfFileReader
 from pyPdf.utils import PdfReadError

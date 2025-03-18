@@ -21,7 +21,7 @@
 import time
 import base64
 from PyPDF2 import PdfFileReader, PdfFileWriter
-from StringIO import StringIO
+from io import StringIO
 
 from openerp.netsvc import ExportService
 from openerp.report import report_sxw

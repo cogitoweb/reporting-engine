@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-import report_xls
+from . import report_xls

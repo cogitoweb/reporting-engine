@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-import ir_report
+from . import ir_report

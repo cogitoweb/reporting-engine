@@ -743,7 +743,7 @@ class BiSQLView(models.Model):
     def button_preview_sql_expression(self):
         self.button_validate_sql_expression()
         res = self._execute_sql_request()
-        raise UserError('\n'.join(map(lambda x: str(x), res[:100])))
+        raise UserError('\n'.join([str(x) for x in res[:100]]))
 
     @api.multi
     def nuke(self):

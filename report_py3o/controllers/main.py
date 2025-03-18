@@ -85,12 +85,12 @@ class ReportController(main.ReportController):
             else:
                 # Particular report:
                 # decoding the args represented in JSON
-                data = url_decode(url.split('?')[1]).items()
+                data = list(url_decode(url.split('?')[1]).items())
                 response = self.report_routes(
                     reportname, converter='py3o', **dict(data))
             response.set_cookie('fileToken', token)
             return response
-        except Exception, e:
+        except Exception as e:
             se = _serialize_exception(e)
             error = {
                 'code': 200,

@@ -4,7 +4,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl)
 import base64
 from base64 import b64decode
-from cStringIO import StringIO
+from io import StringIO
 import logging
 import os
 import cgi
@@ -187,7 +187,7 @@ class Py3oReport(models.TransientModel):
         if tmpl_data is None:
             # if for any reason the template is not found
             raise TemplateNotFound(
-                _(u'No template found. Aborting.'),
+                _('No template found. Aborting.'),
                 sys.exc_info(),
             )
 

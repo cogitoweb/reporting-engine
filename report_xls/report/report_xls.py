@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import cStringIO
+import io
 
 from odoo.report.report_sxw import report_sxw
 from odoo.api import Environment
@@ -34,10 +34,10 @@ class ReportXls(report_sxw):
         objs = self.getObjects(
             self.env.cr, self.env.uid, ids, self.env.context)
         self.parser_instance.set_context(objs, data, ids, 'xls')
-        file_data = cStringIO.StringIO()
+        file_data = io.StringIO()
         wb = xlwt.Workbook(encoding='utf-8')
         self.generate_xls_report(wb, data, objs)
-        n = cStringIO.StringIO()
+        n = io.StringIO()
         wb.save(n)
         n.seek(0)
         return (n.read(), 'xls')

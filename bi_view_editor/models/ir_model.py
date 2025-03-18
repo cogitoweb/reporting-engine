@@ -112,11 +112,11 @@ class IrModel(models.Model):
 
         def get_model_list(model_ids):
             model_list = []
-            domain = [('model_id', 'in', model_ids.values()),
+            domain = [('model_id', 'in', list(model_ids.values())),
                       ('store', '=', True),
                       ('ttype', 'in', ['many2one'])]
             filtered_fields = self._search_fields(domain)
-            for model in model_ids.items():
+            for model in list(model_ids.items()):
                 for field in filtered_fields:
                     if model[1] == field.model_id.id:
                         model_list.append(
@@ -128,11 +128,11 @@ class IrModel(models.Model):
 
         def get_relation_list(model_ids, model_names):
             relation_list = []
-            domain = [('relation', 'in', model_names.values()),
+            domain = [('relation', 'in', list(model_names.values())),
                       ('store', '=', True),
                       ('ttype', 'in', ['many2one'])]
             filtered_fields = self._search_fields(domain)
-            for model in model_ids.items():
+            for model in list(model_ids.items()):
                 for field in filtered_fields:
                     if model_names[model[1]] == field['relation']:
                         relation_list.append(
@@ -142,7 +142,7 @@ class IrModel(models.Model):
                         )
             return relation_list
 
-        models = self.sudo().browse(model_ids.values())
+        models = self.sudo().browse(list(model_ids.values()))
         model_names = {}
         for model in models:
             model_names.update({model.id: model.model})
@@ -166,7 +166,7 @@ class IrModel(models.Model):
             return field_list
 
         def _get_list_id(model_ids, fields):
-            list_model = model_ids.values()
+            list_model = list(model_ids.values())
             list_model += _get_field(fields, 'table_alias', 'model_id')
             return list_model
 
@@ -209,7 +209,7 @@ class IrModel(models.Model):
 
         def _get_join_nodes_dict(model_ids, new_field):
             join_nodes = []
-            for alias, model_id in model_ids.items():
+            for alias, model_id in list(model_ids.items()):
                 if model_id == new_field['model_id']:
                     join_nodes.append({'table_alias': alias})
             for field in self.get_related_fields(model_ids):
@@ -236,9 +236,8 @@ class IrModel(models.Model):
         join_nodes = _get_join_nodes_dict(model_ids, new_field)
         join_nodes = remove_duplicate_nodes(join_nodes)
 
-        return filter(
-            lambda x: 'id' not in x or
-                      (x['table_alias'], x['id']) not in keys, join_nodes)
+        return [x for x in join_nodes if 'id' not in x or
+                      (x['table_alias'], x['id']) not in keys]
 
     @api.model
     def get_fields(self, model_id):

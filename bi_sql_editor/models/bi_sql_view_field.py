@@ -131,7 +131,7 @@ class BiSQLViewField(models.Model):
         # Don't execute as simple .get() in the dict to manage
         # correctly the type 'character varying(x)'
         ttype = False
-        for k, v in self._SQL_MAPPING.iteritems():
+        for k, v in self._SQL_MAPPING.items():
             if k in vals['sql_type']:
                 ttype = v
 

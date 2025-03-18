@@ -4,7 +4,7 @@
 
 import odoo.tests.common as common
 from odoo.exceptions import ValidationError
-from cStringIO import StringIO
+from io import StringIO
 from odoo.addons.report_xlsx.report.report_xlsx import ReportXlsx
 
 
@@ -56,8 +56,8 @@ class TestHeaderFooter(common.TransactionCase):
         partner = self.env['res.partner'].browse([1])
         workbook = self.report.create_workbook(
             file_data, {}, partner, self.report_xlsx)
-        header = u'&LPage &P of &N &CFilename: &F &RSheetname: &A'
-        footer = u'&LCurrent date: &D &RCurrent time: &T'
+        header = '&LPage &P of &N &CFilename: &F &RSheetname: &A'
+        footer = '&LCurrent date: &D &RCurrent time: &T'
 
         for sheet in workbook.worksheets():
             self.assertEqual(header, sheet.header)
