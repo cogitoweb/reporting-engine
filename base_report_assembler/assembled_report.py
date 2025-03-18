@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from openerp.osv import orm, fields
+from odoo.osv import orm, fields
 
 class AssembledReport(orm.Model):
     _name = 'assembled.report'

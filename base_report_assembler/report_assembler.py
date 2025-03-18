@@ -23,9 +23,9 @@ import base64
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from io import StringIO
 
-from openerp.netsvc import ExportService
-from openerp.report import report_sxw
-from openerp import pooler
+from odoo.netsvc import ExportService
+from odoo.report import report_sxw
+from odoo import pooler
 
 _POLLING_DELAY = 0.25
 

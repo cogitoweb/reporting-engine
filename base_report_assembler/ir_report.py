@@ -18,9 +18,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from openerp.osv import orm
-from openerp import netsvc
-from openerp.report.report_sxw import rml_parse
+from odoo.osv import orm
+from odoo import netsvc
+from odoo.report.report_sxw import rml_parse
 from .report_assembler import PDFReportAssembler
 
 

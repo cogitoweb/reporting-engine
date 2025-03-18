@@ -10,8 +10,8 @@ import requests
 import tempfile
 from datetime import datetime
 from contextlib import closing
-from openerp import _, api, models
-from openerp.exceptions import UserError
+from odoo import _, api, models
+from odoo.exceptions import UserError
 from io import StringIO
 
 logger = logging.getLogger(__name__)
