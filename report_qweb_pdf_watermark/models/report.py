@@ -6,13 +6,9 @@ from logging import getLogger
 from PIL import Image
 from io import StringIO
 
-from pyPdf import PdfFileWriter, PdfFileReader
-from pyPdf.utils import PdfReadError
-try:
-    from PyPDF2 import PdfFileWriter, PdfFileReader  # pylint: disable=W0404
-    from PyPDF2.utils import PdfReadError  # pylint: disable=W0404
-except ImportError:
-    pass
+from PyPDF2 import PdfFileWriter, PdfFileReader  # pylint: disable=W0404
+from PyPDF2.errors import PdfReadError  # pylint: disable=W0404
+
 try:
     # we need this to be sure PIL has loaded PDF support
     from PIL import PdfImagePlugin  # noqa: F401
