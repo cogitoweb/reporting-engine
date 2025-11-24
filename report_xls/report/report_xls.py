@@ -34,10 +34,10 @@ class ReportXls(report_sxw):
         objs = self.getObjects(
             self.env.cr, self.env.uid, ids, self.env.context)
         self.parser_instance.set_context(objs, data, ids, 'xls')
-        file_data = io.StringIO()
+        file_data = io.BytesIO()
         wb = xlwt.Workbook(encoding='utf-8')
         self.generate_xls_report(wb, data, objs)
-        n = io.StringIO()
+        n = io.BytesIO()
         wb.save(n)
         n.seek(0)
         return (n.read(), 'xls')
