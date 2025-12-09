@@ -2,7 +2,7 @@
 # Copyright 2015 ACSONE SA/NV (<http://acsone.eu>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from io import StringIO
+from io import StringIO, BytesIO
 
 from odoo.report.report_sxw import report_sxw
 from odoo.api import Environment
@@ -46,7 +46,7 @@ class ReportXlsx(report_sxw):
         objs = self.getObjects(
             self.env.cr, self.env.uid, ids, self.env.context)
         self.parser_instance.set_context(objs, data, ids, 'xlsx')
-        file_data = StringIO()
+        file_data = BytesIO()
         workbook = self.create_workbook(file_data, data, objs, report)
         workbook.close()
         file_data.seek(0)
