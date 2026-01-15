@@ -95,7 +95,7 @@ class Report(models.Model):
         try:
             attachment = self.env['ir.attachment'].create({
                 'name': filename,
-                'datas': base64.encodestring(signed),
+                'datas': base64.encodebytes(signed),
                 'datas_fname': filename,
                 'res_model': certificate.model_id.model,
                 'res_id': docids[0],

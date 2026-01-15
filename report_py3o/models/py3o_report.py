@@ -221,7 +221,7 @@ class Py3oReport(models.TransientModel):
             with open(report_path, 'rb') as pdfreport:
                 attachment = {
                     'name': save_in_attachment.get(res_id),
-                    'datas': base64.encodestring(pdfreport.read()),
+                    'datas': base64.encodebytes(pdfreport.read()),
                     'datas_fname': save_in_attachment.get(res_id),
                     'res_model': save_in_attachment.get('model'),
                     'res_id': res_id,
